@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                      http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>gccp</artifactId>
+        <groupId>com.srh</groupId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>deploy</artifactId>
+    <packaging>war</packaging>
+    <name>deploy war</name>
+    <description>部署war</description>
+    <dependencies>
+
+        <dependency>
+            <groupId>com.srh</groupId>
+            <artifactId>common-service</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.srh</groupId>
+            <artifactId>user-management</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.srh</groupId>
+            <artifactId>game-server</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+
+    </dependencies>
+    <profiles>
+        <profile>
+            <!-- 本地 -->
+            <id>local</id>
+            <properties>
+                <runtime.env>src/main/resources/local</runtime.env>
+            </properties>
+        </profile>
+        <profile>
+            <!-- 测试 -->
+            <id>test</id>
+            <properties>
+                <runtime.env>src/main/resources/test</runtime.env>
+            </properties>
+        </profile>
+        <profile>
+            <!-- 生产 -->
+            <id>product</id>
+            <properties>
+                <runtime.env>src/main/resources/prod</runtime.env>
+            </properties>
+        </profile>
+    </profiles>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.tomcat.maven</groupId>
+                <artifactId>tomcat7-maven-plugin</artifactId>
+                <version>2.2</version>
+                <configuration>
+                    <port>8080</port>
+                    <path>/gccp</path>
+                    <warSourceDirectory>${project.build.directory}/${project.build.finalName}</warSourceDirectory>
+                </configuration>
+            </plugin>
+            <!-- war:war -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>2.4</version>
+                <configuration>
+                    <webResources>
+                        <resource>
+                            <directory>${runtime.env}</directory>
+                            <targetPath>WEB-INF/classes</targetPath>
+                        </resource>
+                        <resource>
+                            <directory>web/WEB-INF</directory>
+                            <targetPath>WEB-INF</targetPath>
+                        </resource>
+                    </webResources>
+                </configuration>
+            </plugin>
+        </plugins>
+        <finalName>gccp</finalName>
+    </build>
+</project>

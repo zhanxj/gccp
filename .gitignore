@@ -41,3 +41,9 @@ Icon
 Network Trash Folder
 Temporary Items
 .apdisk
+
+*.name
+.idea/artifacts/common_service_war_exploded.xml
+*.iml
+*.class
+*.lst
