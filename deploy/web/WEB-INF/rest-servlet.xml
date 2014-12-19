@@ -24,6 +24,5 @@
     </bean>
 
     <import resource="spring-jdbc.xml"/>
-    <import resource="spring-security.xml"/>
 
 </beans>

@@ -1,6 +1,7 @@
 package com.srh.gccp.user.dao;
 
 import com.srh.gccp.common.exception.GccpException;
+import com.srh.gccp.common.model.Page;
 import com.srh.gccp.user.model.User;
 
 import java.util.List;
@@ -29,9 +30,7 @@ public interface UserDao {
      */
     public List<User> query() throws GccpException;
 
-    /**
-     * 分页查询用户
-     */
-    public List<User> pageQuery(String name, long current, long size) throws Exception;
+
+    public Page<User> queryPage(String name, int start, int size) throws GccpException;
 
 }

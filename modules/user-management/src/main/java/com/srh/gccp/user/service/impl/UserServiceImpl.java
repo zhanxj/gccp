@@ -1,5 +1,7 @@
 package com.srh.gccp.user.service.impl;
 
+import com.srh.gccp.common.exception.GccpException;
+import com.srh.gccp.common.model.Page;
 import com.srh.gccp.user.dao.UserDao;
 import com.srh.gccp.user.model.User;
 import com.srh.gccp.user.service.UserService;
@@ -17,7 +19,12 @@ public class UserServiceImpl implements UserService {
     private UserDao userDao;
 
     @Override
-    public List<User> query() {
+    public List<User> query() throws GccpException {
         return userDao.query();
+    }
+
+    @Override
+    public Page<User> queryPage(String name, int start, int size) throws GccpException {
+        return userDao.queryPage(name, start, size);
     }
 }

@@ -1,12 +1,14 @@
 package com.srh.gccp.common.dao;
 
-import com.google.common.collect.Lists;
+import com.google.common.base.Strings;
 import com.srh.gccp.common.exception.GccpException;
+import com.srh.gccp.common.model.Page;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
+import java.lang.reflect.ParameterizedType;
 import java.util.List;
 
 /**
@@ -15,8 +17,6 @@ import java.util.List;
 
 @Repository
 public abstract class BaseDao {
-
-    public final static int NUM_PER_PAGE = 20; // 默认每页行数
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -29,61 +29,74 @@ public abstract class BaseDao {
         }
     }
 
-    /**
-     * 分页查询
-     *
-     * @param sql
-     * @param currentPage
-     * @param size
-     * @param rowMapper
-     * @param args
-     * @param <T>
-     * @return
-     * @throws Exception
-     */
-    public <T> List<T> pageQuery(String sql, long currentPage, long size, RowMapper<T> rowMapper, Object... args) throws Exception {
-        List list = Lists.newArrayList();
-        StringBuilder stringBuilder = new StringBuilder();
-        long start = (currentPage - 1) * size;
-        stringBuilder.append(sql).append(" limit ").append(start).append(',').append(size);
-        return getJdbcTemplate().query(stringBuilder.toString(), rowMapper, args);
+    public <T> Page<T> fetchPage(
+            final String sqlCountRows,
+            final String sqlFetchRows,
+            final Object args[],
+            final int pageNo,
+            final int pageSize) throws GccpException {
+        if (Strings.isNullOrEmpty(sqlCountRows) || Strings.isNullOrEmpty(sqlFetchRows) || pageNo < 1 || pageSize < 0) {
+            throw new GccpException("分页查询参数不对");
+        }
+        // determine how many rows are availabl
+        final int rowCount = jdbcTemplate.queryForObject(sqlCountRows, args, Integer.class);
+        // calculate the number of pages
+        int pageCount = rowCount / pageSize;
+        if (rowCount > pageSize * pageCount) {
+            pageCount++;
+        }
+
+        // create the page object
+        final Page<T> page = new Page<T>();
+        page.setPageNumber(pageNo);
+        page.setPagesAvailable(pageCount);
+
+        // fetch a single page of results
+        final int startRow = (pageNo - 1) * pageSize;
+        StringBuffer sql = new StringBuffer();
+        sql.append(sqlFetchRows).append(" limit ").append(startRow).append(",").append(pageSize);
+        Class<T> entityClass = (Class<T>) ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[0];
+        List<T> list = jdbcTemplate.query(sql.toString(), args, BeanPropertyRowMapper.newInstance(entityClass));
+        page.setPageItems(list);
+        return page;
     }
 
-    /**
-     * 升序查询
-     *
-     * @param sql
-     * @param sort
-     * @param rowMapper
-     * @param args
-     * @param <T>
-     * @return
-     * @throws Exception
-     */
-    public <T> List<T> sortQueryAsc(String sql, String sort, RowMapper<T> rowMapper, Object... args) throws Exception {
-        List list = Lists.newArrayList();
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(sql).append("  ").append("order by ").append(sort).append(" ASC");
-        return getJdbcTemplate().query(stringBuilder.toString(), rowMapper, args);
-    }
+    public <T> Page<T> fetchPageAndOrder(
+            final String sqlCountRows,
+            final String sqlFetchRows,
+            final Object args[],
+            final int pageNo,
+            final int pageSize,
+            final String order,
+            final String orderby) throws GccpException {
+        if (Strings.isNullOrEmpty(sqlCountRows) || Strings.isNullOrEmpty(sqlFetchRows) || pageNo < 1 || pageSize < 0 || Strings.isNullOrEmpty(order) || Strings.isNullOrEmpty(orderby)) {
+            throw new GccpException("分页排序查询参数不对");
+        }
+        // determine how many rows are availabl
+        final int rowCount = jdbcTemplate.queryForObject(sqlCountRows, args, Integer.class);
+        // calculate the number of pages
+        int pageCount = rowCount / pageSize;
+        if (rowCount > pageSize * pageCount) {
+            pageCount++;
+        }
 
-    /**
-     * 降序查询
-     *
-     * @param sql
-     * @param sort
-     * @param rowMapper
-     * @param args
-     * @param <T>
-     * @return
-     * @throws Exception
-     */
-    public <T> List<T> sortQueryDesc(String sql, String sort, RowMapper<T> rowMapper, Object... args) throws Exception {
-        List list = Lists.newArrayList();
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(sql).append("  ").append("order by ").append(sort).append(" DESC");
-        return getJdbcTemplate().query(stringBuilder.toString(), rowMapper, args);
+        // create the page object
+        final Page<T> page = new Page<T>();
+        page.setPageNumber(pageNo);
+        page.setPagesAvailable(pageCount);
+
+        // fetch a single page of results
+        final int startRow = (pageNo - 1) * pageSize;
+        StringBuffer sql = new StringBuffer();
+        sql.append(sqlFetchRows).append(" ORDER BY").append(orderby).append(" ").append(order).append(" limit ").append(startRow).append(",").append(pageSize);
+        Class<T> entityClass = (Class<T>) ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[0];
+        List<T> list = jdbcTemplate.query(sql.toString(), args, BeanPropertyRowMapper.newInstance(entityClass));
+        page.setPageItems(list);
+        return page;
     }
 
 
 }
+
+
+

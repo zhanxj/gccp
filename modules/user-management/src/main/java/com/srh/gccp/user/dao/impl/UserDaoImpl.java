@@ -2,6 +2,7 @@ package com.srh.gccp.user.dao.impl;
 
 import com.srh.gccp.common.dao.BaseDao;
 import com.srh.gccp.common.exception.GccpException;
+import com.srh.gccp.common.model.Page;
 import com.srh.gccp.user.dao.UserDao;
 import com.srh.gccp.user.model.User;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
@@ -25,14 +26,14 @@ public class UserDaoImpl extends BaseDao implements UserDao {
         return getJdbcTemplate().query("SELECT * FROM t_user WHERE id=?", BeanPropertyRowMapper.newInstance(User.class), id);
     }
 
-
-    @Override
-    public List<User> pageQuery(String name, long current, long size) throws Exception {
-        return pageQuery("SELECT * FROM t_user WHERE name=?", current, size, BeanPropertyRowMapper.newInstance(User.class), name);
-    }
-
     @Override
     public List<User> query() throws GccpException {
         return getJdbcTemplate().query("SELECT * FROM t_user", BeanPropertyRowMapper.newInstance(User.class));
+    }
+
+    @Override
+    public Page<User> queryPage(String name, int start, int size) throws GccpException {
+        Object[] args = {name};
+        return fetchPage("SELECT COUNT (id) FROM t_user WHERE name=?", "SELECT * FROM t_user WHERE name=?", args, start, size);
     }
 }
