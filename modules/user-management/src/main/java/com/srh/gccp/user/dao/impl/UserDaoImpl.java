@@ -34,6 +34,6 @@ public class UserDaoImpl extends BaseDao implements UserDao {
     @Override
     public Page<User> queryPage(String name, int start, int size) throws GccpException {
         Object[] args = {name};
-        return fetchPage("SELECT COUNT (id) FROM t_user WHERE name=?", "SELECT * FROM t_user WHERE name=?", args, start, size);
+        return fetchPage(User.class, "SELECT COUNT (id) FROM t_user WHERE name=?", "SELECT * FROM t_user WHERE name=?", args, start, size);
     }
 }
