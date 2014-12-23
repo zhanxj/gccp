@@ -4,12 +4,12 @@ import com.srh.gccp.common.exception.GccpException;
 import com.srh.gccp.common.model.Page;
 import com.srh.gccp.user.model.User;
 import com.srh.gccp.user.service.UserService;
+import org.codehaus.jackson.map.util.JSONPObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 /**
  * Created by Hokin.jim on 2014/12/16.
@@ -22,7 +22,10 @@ public class UserController {
     private UserService userService;
 
     @RequestMapping("/")
-    public List<User> getAllUsers() throws GccpException {
+    public Object getAllUsers(@RequestParam(value = "jsoncallback", required = false) String jsoncallback) throws GccpException {
+        if (jsoncallback != null) {
+            return new JSONPObject(jsoncallback, userService.query());
+        }
         return userService.query();
     }
 

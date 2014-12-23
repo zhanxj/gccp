@@ -60,10 +60,6 @@ public abstract class BaseDao {
         return page;
     }
 
-    public Page test(Class clazz) {
-        Page page = new Page();
-        return page;
-    }
     public <T> Page<T> fetchPageAndOrder(
             Class clazz,
             final String sqlCountRows,
